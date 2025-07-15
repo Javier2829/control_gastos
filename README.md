@@ -89,7 +89,7 @@ control-finanzas-streamlit/
 
 ## 👨‍💻 Autor
 
-- **Fredy Curihual** – [@Javier2829](https://github.com/tuusuario)
+- **Fredy Curihual** – [@Javier2829](https://github.com/Javier2829)
 
 ---
 
