@@ -2,7 +2,7 @@ import datetime
 import plotly.express as px
 import streamlit as st
 import pandas as pd
-import os
+from configure_firebase import get_firebase
 
 
 def main():
@@ -30,21 +30,21 @@ def main():
             monto = st.number_input('Monto', min_value=0, value=0, step=1)
             categoria = st.selectbox('Categoria', catRegistro, index=None, placeholder='Elija una categoria')
             descripcion = st.text_area('Descripción u observación', placeholder='Detalle de la transacción')
-            registrar = st.form_submit_button('Registrar', icon=':material/save:', type="primary")
+            registrar = st.form_submit_button('Registrar', icon=':material/save:', type='primary')
             # guardar= st.button('Guardar', type='primary')
 
             if registrar:
                 nuevaTransaccion = pd.DataFrame([{
                     "tipo": tipo,
-                    "fecha": fecha,
+                    "fecha": fecha.strftime('%Y-%m%d'),
                     "monto": monto,
                     "categoria": categoria,
                     "descripcion": descripcion
                 }])
                 st.session_state.datos = pd.concat([st.session_state.datos, nuevaTransaccion], ignore_index=True)
-
-            # st.session_state.datos.to_csv(CSV_FILE, index=False)
-            # st.info('datos guardados')
+    #         guardar datos en firebase
+                db = get_firebase()
+                db.collection('transacciones').add(nuevaTransaccion.to_dict(orient='records')[0])
 
     # ----------------------------------historial-----------------------------------
     elif menu == 'Ver historial':
@@ -87,13 +87,13 @@ def main():
         else:
             ingresos = df[df['tipo'] == 'Ingreso']['monto'].sum()
 
-        gastos = df[df['tipo'] == 'Gasto']['monto'].sum()
-        balance = ingresos - gastos
+            gastos = df[df['tipo'] == 'Gasto']['monto'].sum()
+            balance = ingresos - gastos
         # tabla comparativa de gastos e ingresos
-        col1, col2, col3 = st.columns(3)
-        col1.metric('Total de ingresos', f'${ingresos}')
-        col2.metric('Total de gastos ', f'${gastos}')
-        col3.metric('Balance', f'${balance}')
+            col1, col2, col3 = st.columns(3)
+            col1.metric('Total de ingresos', f'${ingresos}')
+            col2.metric('Total de gastos ', f'${gastos}')
+            col3.metric('Balance', f'${balance}')
 
 
 
@@ -101,14 +101,14 @@ def main():
         # graficos
 
         # Gráfico por categoría
-        grafico_df = df.groupby(["categoria", "tipo"])["monto"].sum().reset_index()
-        fig = px.bar(grafico_df, x="categoria", y="monto", color="tipo", barmode="group")
-        st.plotly_chart(fig)
+            grafico_df = df.groupby(["categoria", "tipo"])["monto"].sum().reset_index()
+            fig = px.bar(grafico_df, x="categoria", y="monto", color="tipo", barmode="group")
+            st.plotly_chart(fig)
 
-        eleccion= st.selectbox('Elige tipo de grafico',options=['tipo', 'categoria', 'monto'])
+            eleccion= st.selectbox('Elige tipo de grafico',options=['tipo', 'categoria', 'monto'])
 
-        pie= px.pie( data_frame=grafico_df, names=eleccion, color=eleccion, custom_data=eleccion )
-        st.plotly_chart(pie)
+            pie= px.pie( data_frame=grafico_df, names=eleccion, color=eleccion, custom_data=eleccion )
+            st.plotly_chart(pie)
 
 
 if __name__ == '__main__':
