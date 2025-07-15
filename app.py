@@ -6,12 +6,7 @@ import os
 
 
 def main():
-    # crear archivo csv
-    # CSV_FILE = 'finanzas personales'
-    # if os.path.exists(CSV_FILE):
-    #     st.session_state.datos = pd.read_csv(CSV_FILE, parse_dates='fecha')
-    # else:
-    #     st.session_state.datos = pd.DataFrame(columns=['tipo', 'fecha', 'monto', 'categoria', 'descripcion'])
+
     # crear memoria de datos
     if 'datos' not in st.session_state:
         st.session_state.datos = pd.DataFrame(columns=['tipo', 'fecha', 'monto', 'categoria', 'descripcion'])
@@ -58,7 +53,7 @@ def main():
 
         #     Filtros de los datos
         tipo_filtro = st.multiselect('Filtrar por tipo', ['Gasto', 'Ingreso'], default=["Ingreso", "Gasto"])
-        fecha_inicio = st.date_input('Desde', datetime.date(2025, 1, 1))
+        fecha_inicio = st.date_input('Desde', datetime.date(2025, 6, 1))
 
         fecha_final = st.date_input('Hasta ', datetime.date.today())
         # convertir fechas a timestamp
@@ -109,6 +104,11 @@ def main():
         grafico_df = df.groupby(["categoria", "tipo"])["monto"].sum().reset_index()
         fig = px.bar(grafico_df, x="categoria", y="monto", color="tipo", barmode="group")
         st.plotly_chart(fig)
+
+        eleccion= st.selectbox('Elige tipo de grafico',options=['tipo', 'categoria', 'monto'])
+
+        pie= px.pie( data_frame=grafico_df, names=eleccion, color=eleccion, custom_data=eleccion )
+        st.plotly_chart(pie)
 
 
 if __name__ == '__main__':
