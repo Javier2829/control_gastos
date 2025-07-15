@@ -18,10 +18,22 @@ def main():
                    'Crédito Consumo', 'Crédito Hipotecário', 'Linea de Crédito', 'Tarjeta', 'Luz', 'Agua', 'internet',
                    'Telefonía', 'Televisión']
 
+
     # menú del siderbar
     menu = st.sidebar.selectbox('Menu', opMenu)
+    # -------------------------------------home-------------------------------------------
+    if menu == 'Home':
+        with (st.form(key='contacto', clear_on_submit=True)):
+            nombre=st.text_input(label='Nombre')
+            correo= st.text_input(label='Email')
+            contacto=st.number_input(label='contacto', value=None, min_value=0)
+            comentario=st.text_area(label="Escribe tu sugerencia")
+            enviar=st.form_submit_button("enviar")
+
+
+
     # ------------------------------------registro -------------------------------------------
-    if menu == 'Registrar transacción':
+    elif menu == 'Registrar transacción':
         st.subheader('Registro de transacción')
         with (st.form(key='registro', clear_on_submit=True)):
             tipo = st.selectbox("Tipo", ["Ingreso", "Gasto"], index=None, placeholder='Selecione una opción')
