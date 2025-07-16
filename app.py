@@ -2,7 +2,9 @@ import datetime
 import plotly.express as px
 import streamlit as st
 import pandas as pd
-from configure_firebase import get_firebase
+from configure_firebase import get_firebase, cargar_transacciones
+import io
+import xlsxwriter
 
 
 def main():
@@ -23,11 +25,30 @@ def main():
     menu = st.sidebar.selectbox('Menu', opMenu)
     # -------------------------------------home-------------------------------------------
     if menu == 'Home':
+        df= cargar_transacciones()
+        if df.empty:
+            st.warning('No hay datos guardados')
+        else:
+            df['fecha']=pd.to_datetime(df['fecha'], errors='coerce', format='%Y-%m-%d')
+            mostrar=['fecha', 'monto', 'categoria','descripcion']
+            colus=[col for col in mostrar if col in df.columns]
+            # Verifica si 'fecha' tiene valores válidos
+            if df['fecha'].isna().all():
+                st.warning('⚠️ Todas las fechas son inválidas o están vacías.')
+            else:
+                # Mostrar el DataFrame ordenado por fecha descendente
+                df = df.sort_values(by='fecha', ascending=False)
+                st.dataframe(df[colus])
+
+
+
+        st.subheader('Contacto')
+        st.markdown('Para contacto a traves del formulario ')
         with (st.form(key='contacto', clear_on_submit=True)):
-            nombre=st.text_input(label='Nombre')
-            correo= st.text_input(label='Email')
-            contacto=st.number_input(label='contacto', value=None, min_value=0)
-            comentario=st.text_area(label="Escribe tu sugerencia")
+            nombre=st.text_input(label='Nombre', placeholder='Nombre y Apellidos')
+            correo= st.text_input(label='Email', placeholder='miMail@mail.com')
+            contacto=st.number_input(label='Contacto', value=None, min_value=0, placeholder='+56 9 12345678')
+            comentario=st.text_area(label="Descripción", placeholder='Dudas o sugerencias ')
             enviar=st.form_submit_button("enviar")
 
 
@@ -39,7 +60,7 @@ def main():
             tipo = st.selectbox("Tipo", ["Ingreso", "Gasto"], index=None, placeholder='Selecione una opción')
 
             fecha = st.date_input(label='Fecha', value="today", max_value='today')
-            monto = st.number_input('Monto', min_value=0, value=0, step=1)
+            monto = st.number_input('Monto', min_value=0, value=None, step=1)
             categoria = st.selectbox('Categoria', catRegistro, index=None, placeholder='Elija una categoria')
             descripcion = st.text_area('Descripción u observación', placeholder='Detalle de la transacción')
             registrar = st.form_submit_button('Registrar', icon=':material/save:', type='primary')
@@ -48,7 +69,7 @@ def main():
             if registrar:
                 nuevaTransaccion = pd.DataFrame([{
                     "tipo": tipo,
-                    "fecha": fecha.strftime('%Y-%m%d'),
+                    "fecha": fecha.strftime('%Y-%m-%d'),
                     "monto": monto,
                     "categoria": categoria,
                     "descripcion": descripcion
@@ -72,7 +93,9 @@ def main():
         fecha_inicio = pd.Timestamp(fecha_inicio)
         fecha_final = pd.Timestamp(fecha_final)
         # asegura que la columna sea de tipo datetime
-        df['fecha'] = pd.to_datetime(df['fecha'])
+        df['fecha'] = pd.to_datetime(df['fecha'], errors='coerce')
+        df = df.dropna(subset=['fecha'])
+
         # crea el dataframe filtrado
         df_filtrado = df[
             (df['tipo'].isin(tipo_filtro)) &
@@ -89,7 +112,18 @@ def main():
                 file_name='finanzas personales.csv',
                 mime='text/csv')
 
-
+            # --- Descarga como Excel ---
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df_filtrado.to_excel(writer, index=False, sheet_name='Transacciones')
+                writer.close()
+            st.download_button(
+                label='📊 Descargar Excel',
+                data=output.getvalue(),
+                file_name='finanzas_personales.xlsx',
+                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+    # ----------------------------------------resumen----------------------------------------
     elif menu == 'Resumen':
         st.subheader(':material/analytics: Resumen financiero ')
         df = st.session_state.datos
