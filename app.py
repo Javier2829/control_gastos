@@ -25,6 +25,7 @@ def main():
     menu = st.sidebar.selectbox('Menu', opMenu)
     # -------------------------------------home-------------------------------------------
     if menu == 'Home':
+        st.subheader('Historial de transacciones')
         df= cargar_transacciones()
         if df.empty:
             st.warning('No hay datos guardados')
@@ -82,7 +83,8 @@ def main():
     # ----------------------------------historial-----------------------------------
     elif menu == 'Ver historial':
         st.subheader(":material/history: Historial de Transacciones")
-        df = st.session_state.datos
+        # df = st.session_state.datos
+        df=cargar_transacciones()
 
         #     Filtros de los datos
         tipo_filtro = st.multiselect('Filtrar por tipo', ['Gasto', 'Ingreso'], default=["Ingreso", "Gasto"])
@@ -93,8 +95,8 @@ def main():
         fecha_inicio = pd.Timestamp(fecha_inicio)
         fecha_final = pd.Timestamp(fecha_final)
         # asegura que la columna sea de tipo datetime
-        df['fecha'] = pd.to_datetime(df['fecha'], errors='coerce')
-        df = df.dropna(subset=['fecha'])
+        # df['fecha'] = pd.to_datetime(df['fecha'], errors='coerce')
+        # df = df.dropna(subset=['fecha'])
 
         # crea el dataframe filtrado
         df_filtrado = df[
@@ -126,8 +128,8 @@ def main():
     # ----------------------------------------resumen----------------------------------------
     elif menu == 'Resumen':
         st.subheader(':material/analytics: Resumen financiero ')
-        df = st.session_state.datos
-
+        # df = st.session_state.datos
+        df=cargar_transacciones()
         if df.empty:
             st.info('No hay datos para mostrar')
         else:
