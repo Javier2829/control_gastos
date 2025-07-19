@@ -6,6 +6,11 @@ from configure_firebase import get_firebase, cargar_transacciones
 import io
 import xlsxwriter
 
+st.set_page_config(
+    page_title="Control de gastos",
+    page_icon=":material/currency_exchange:",
+    layout="centered"
+)
 
 def main():
 
